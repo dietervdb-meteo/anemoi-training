@@ -9,7 +9,7 @@ nodes:
   hidden:
     node_builder:
       _target_: anemoi.graphs.nodes.TriNodes 
-      resolution: 5  # number of refinements
+      resolution: 3  # number of refinements
     attributes:
       area_weight:
         _target_: anemoi.graphs.nodes.attributes.AreaWeights # options: Area, Uniform
