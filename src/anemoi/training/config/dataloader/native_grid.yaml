@@ -45,12 +45,12 @@ dataset:
         rename_prefix: metar # this may become optional
         is_observations: true # will disappear
         select:
-          - cos_latitude
-          - sin_latitude
-          - cos_longitude
-          - sin_longitude
-          - stalt
-          - t2m_0
+          - metar_cos_latitude
+          - metar_sin_latitude
+          - metar_cos_longitude
+          - metar_sin_longitude
+          - metar_stalt
+          - metar_t2m_0
       - dataset: aifs-ea-an-oper-0001-mars-o96-1979-2022-6h-v6
 
 training: ${dataloader.dataset}

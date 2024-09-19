@@ -101,6 +101,9 @@ class AnemoiDatasetsDataModule(pl.LightningDataModule):
 
     @cached_property
     def statistics(self) -> dict:
+        assert (
+            "mean" in self.ds_train.statistics
+        ), f"Expected 'mean' in statistics, got {list(self.ds_train.statistics.keys())}"
         return self.ds_train.statistics
 
     @cached_property
@@ -113,10 +116,8 @@ class AnemoiDatasetsDataModule(pl.LightningDataModule):
 
     @cached_property
     def ds_train(self) -> NativeGridDataset:
-        return self._get_dataset(
-            open_dataset(OmegaConf.to_container(self.config.dataloader.training, resolve=True)),
-            label="train",
-        )
+        ds = open_dataset(OmegaConf.to_container(self.config.dataloader.training, resolve=True))
+        return self._get_dataset(ds, label="train")
 
     @cached_property
     def ds_valid(self) -> NativeGridDataset:
