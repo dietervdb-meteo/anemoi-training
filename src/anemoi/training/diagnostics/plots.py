@@ -197,7 +197,7 @@ def plot_power_spectrum(
         ax[plot_idx].loglog(
             np.arange(1, amplitude_t.shape[0]),
             amplitude_t[1 : (amplitude_t.shape[0])],
-            label="Truth (ERA5)",
+            label="Truth (data)",
         )
         ax[plot_idx].loglog(
             np.arange(1, amplitude_p.shape[0]),
@@ -248,6 +248,7 @@ def plot_histogram(
     x: np.ndarray,
     y_true: np.ndarray,
     y_pred: np.ndarray,
+    precip_and_related_fields: list | None = None,
 ) -> Figure:
     """Plots histogram.
 
@@ -264,6 +265,8 @@ def plot_histogram(
         Expected data of shape (lat*lon, nvar*level)
     y_pred : np.ndarray
         Predicted data of shape (lat*lon, nvar*level)
+    precip_and_related_fields : list, optional
+        List of precipitation-like variables, by default []
 
     Returns
     -------
@@ -271,6 +274,8 @@ def plot_histogram(
         The figure object handle.
 
     """
+    precip_and_related_fields = precip_and_related_fields or []
+
     n_plots_x, n_plots_y = len(parameters), 1
 
     figsize = (n_plots_y * 4, n_plots_x * 3)
@@ -279,24 +284,34 @@ def plot_histogram(
     for plot_idx, (variable_idx, (variable_name, output_only)) in enumerate(parameters.items()):
         yt = y_true[..., variable_idx].squeeze()
         yp = y_pred[..., variable_idx].squeeze()
+        # postprocessed outputs so we need to handle possible NaNs
 
-        # Calculate the histogram
+        # Calculate the histogram and handle NaNs
         if output_only:
+            # histogram of true increment and predicted increment
             xt = x[..., variable_idx].squeeze() * int(output_only)
-            hist_yt, bins_yt = np.histogram((yt - xt), bins=100)
-            hist_yp, bins_yp = np.histogram((yp - xt), bins=100)
+            yt_xt = yt - xt
+            yp_xt = yp - xt
+            # enforce the same binning for both histograms
+            bin_min = min(np.nanmin(yt_xt), np.nanmin(yp_xt))
+            bin_max = max(np.nanmax(yt_xt), np.nanmax(yp_xt))
+            hist_yt, bins_yt = np.histogram(yt_xt[~np.isnan(yt_xt)], bins=100, range=[bin_min, bin_max])
+            hist_yp, bins_yp = np.histogram(yp_xt[~np.isnan(yp_xt)], bins=100, range=[bin_min, bin_max])
         else:
-            hist_yt, bins_yt = np.histogram(yt, bins=100)
-            hist_yp, bins_yp = np.histogram(yp, bins=100)
+            # enforce the same binning for both histograms
+            bin_min = min(np.nanmin(yt), np.nanmin(yp))
+            bin_max = max(np.nanmax(yt), np.nanmax(yp))
+            hist_yt, bins_yt = np.histogram(yt[~np.isnan(yt)], bins=100, range=[bin_min, bin_max])
+            hist_yp, bins_yp = np.histogram(yp[~np.isnan(yp)], bins=100, range=[bin_min, bin_max])
 
         # Visualization trick for tp
-        if variable_name in {"tp", "cp"}:
+        if variable_name in precip_and_related_fields:
             # in-place multiplication does not work here because variables are different numpy types
             hist_yt = hist_yt * bins_yt[:-1]
             hist_yp = hist_yp * bins_yp[:-1]
         # Plot the modified histogram
-        ax[plot_idx].bar(bins_yt[:-1], hist_yt, width=np.diff(bins_yt), color="blue", alpha=0.7, label="Truth (ERA5)")
-        ax[plot_idx].bar(bins_yp[:-1], hist_yp, width=np.diff(bins_yp), color="red", alpha=0.7, label="Anemoi")
+        ax[plot_idx].bar(bins_yt[:-1], hist_yt, width=np.diff(bins_yt), color="blue", alpha=0.7, label="Truth (data)")
+        ax[plot_idx].bar(bins_yp[:-1], hist_yp, width=np.diff(bins_yp), color="red", alpha=0.7, label="Predicted")
 
         ax[plot_idx].set_title(variable_name)
         ax[plot_idx].set_xlabel(variable_name)
@@ -317,6 +332,7 @@ def plot_predicted_multilevel_flat_sample(
     x: np.ndarray,
     y_true: np.ndarray,
     y_pred: np.ndarray,
+    precip_and_related_fields: list | None = None,
 ) -> Figure:
     """Plots data for one multilevel latlon-"flat" sample.
 
@@ -341,6 +357,8 @@ def plot_predicted_multilevel_flat_sample(
         Expected data of shape (lat*lon, nvar*level)
     y_pred : np.ndarray
         Predicted data of shape (lat*lon, nvar*level)
+    precip_and_related_fields : list, optional
+        List of precipitation-like variables, by default []
 
     Returns
     -------
@@ -362,9 +380,33 @@ def plot_predicted_multilevel_flat_sample(
         yt = y_true[..., variable_idx].squeeze()
         yp = y_pred[..., variable_idx].squeeze()
         if n_plots_x > 1:
-            plot_flat_sample(fig, ax[plot_idx, :], pc_lon, pc_lat, xt, yt, yp, variable_name, clevels, cmap_precip)
+            plot_flat_sample(
+                fig,
+                ax[plot_idx, :],
+                pc_lon,
+                pc_lat,
+                xt,
+                yt,
+                yp,
+                variable_name,
+                clevels,
+                cmap_precip,
+                precip_and_related_fields,
+            )
         else:
-            plot_flat_sample(fig, ax, pc_lon, pc_lat, xt, yt, yp, variable_name, clevels, cmap_precip)
+            plot_flat_sample(
+                fig,
+                ax,
+                pc_lon,
+                pc_lat,
+                xt,
+                yt,
+                yp,
+                variable_name,
+                clevels,
+                cmap_precip,
+                precip_and_related_fields,
+            )
 
     return fig
 
@@ -380,6 +422,7 @@ def plot_flat_sample(
     vname: str,
     clevels: float,
     cmap_precip: str,
+    precip_and_related_fields: list | None = None,
 ) -> None:
     """Plot a "flat" 1D sample.
 
@@ -407,9 +450,12 @@ def plot_flat_sample(
         Accumulation levels used for precipitation related plots
     cmap_precip: str
         Colors used for each accumulation level
+    precip_and_related_fields : list, optional
+        List of precipitation-like variables, by default []
 
     """
-    if vname in {"tp", "cp"}:
+    precip_and_related_fields = precip_and_related_fields or []
+    if vname in precip_and_related_fields:
         # Create a custom colormap for precipitation
         nws_precip_colors = cmap_precip
         precip_colormap = ListedColormap(nws_precip_colors)
@@ -433,6 +479,29 @@ def plot_flat_sample(
             norm=TwoSlopeNorm(vcenter=0.0),
             title=f"{vname} pred err",
         )
+    elif vname == "mwd":
+        cyclic_colormap = "twilight"
+
+        def error_plot_in_degrees(array1: np.ndarray, array2: np.ndarray) -> np.ndarray:
+            """Calculate error between two arrays in degrees in range [-180, 180]."""
+            tmp = (array1 - array2) % 360
+            return np.where(tmp > 180, tmp - 360, tmp)
+
+        sample_shape = truth.shape
+        pred = np.maximum(np.zeros(sample_shape), np.minimum(360 * np.ones(sample_shape), (pred)))
+        scatter_plot(fig, ax[1], lon=lon, lat=lat, data=truth, cmap=cyclic_colormap, title=f"{vname} target")
+        scatter_plot(fig, ax[2], lon=lon, lat=lat, data=pred, cmap=cyclic_colormap, title=f"capped {vname} pred")
+        err_plot = error_plot_in_degrees(truth, pred)
+        scatter_plot(
+            fig,
+            ax[3],
+            lon=lon,
+            lat=lat,
+            data=err_plot,
+            cmap="bwr",
+            norm=TwoSlopeNorm(vcenter=0.0),
+            title=f"{vname} pred err: {np.nanmean(np.abs(err_plot)):.{4}f} deg.",
+        )
     else:
         scatter_plot(fig, ax[1], lon=lon, lat=lat, data=truth, title=f"{vname} target")
         scatter_plot(fig, ax[2], lon=lon, lat=lat, data=pred, title=f"{vname} pred")
@@ -448,27 +517,52 @@ def plot_flat_sample(
         )
 
     if sum(input_) != 0:
-        scatter_plot(fig, ax[0], lon=lon, lat=lat, data=input_, title=f"{vname} input")
-        scatter_plot(
-            fig,
-            ax[4],
-            lon=lon,
-            lat=lat,
-            data=pred - input_,
-            cmap="bwr",
-            norm=TwoSlopeNorm(vcenter=0.0),
-            title=f"{vname} increment [pred - input]",
-        )
-        scatter_plot(
-            fig,
-            ax[5],
-            lon=lon,
-            lat=lat,
-            data=truth - input_,
-            cmap="bwr",
-            norm=TwoSlopeNorm(vcenter=0.0),
-            title=f"{vname} persist err",
-        )
+        if vname == "mwd":
+            scatter_plot(fig, ax[0], lon=lon, lat=lat, data=input_, cmap=cyclic_colormap, title=f"{vname} input")
+            err_plot = error_plot_in_degrees(pred, input_)
+            scatter_plot(
+                fig,
+                ax[4],
+                lon=lon,
+                lat=lat,
+                data=err_plot,
+                cmap="bwr",
+                norm=TwoSlopeNorm(vcenter=0.0),
+                title=f"{vname} increment [pred - input] % 360",
+            )
+            err_plot = error_plot_in_degrees(truth, input_)
+            scatter_plot(
+                fig,
+                ax[5],
+                lon=lon,
+                lat=lat,
+                data=err_plot,
+                cmap="bwr",
+                norm=TwoSlopeNorm(vcenter=0.0),
+                title=f"{vname} persist err: {np.nanmean(np.abs(err_plot)):.{4}f} deg.",
+            )
+        else:
+            scatter_plot(fig, ax[0], lon=lon, lat=lat, data=input_, title=f"{vname} input")
+            scatter_plot(
+                fig,
+                ax[4],
+                lon=lon,
+                lat=lat,
+                data=pred - input_,
+                cmap="bwr",
+                norm=TwoSlopeNorm(vcenter=0.0),
+                title=f"{vname} increment [pred - input]",
+            )
+            scatter_plot(
+                fig,
+                ax[5],
+                lon=lon,
+                lat=lat,
+                data=truth - input_,
+                cmap="bwr",
+                norm=TwoSlopeNorm(vcenter=0.0),
+                title=f"{vname} persist err",
+            )
     else:
         ax[0].axis("off")
         ax[4].axis("off")
