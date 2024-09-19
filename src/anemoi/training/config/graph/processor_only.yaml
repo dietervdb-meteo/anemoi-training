@@ -8,12 +8,24 @@ nodes:
   # Hidden nodes
   hidden:
     node_builder:
-      _target_: anemoi.graphs.nodes.TriNodes 
+      _target_: anemoi.graphs.nodes.TriNodes
       resolution: 3  # number of refinements
     attributes:
       area_weight:
         _target_: anemoi.graphs.nodes.attributes.AreaWeights # options: Area, Uniform
         norm: unit-max  # options: l1, l2, unit-max, unit-sum, unit-std
+
+  # TODO ask Mario
+  # add data nodes ("data" means "static")
+  #
+  # data:
+  #   node_builder:
+  #     _target_: anemoi.graphs.nodes.TriNodes
+  #   attributes:
+  #
+  # obs:
+  #   node_builder:
+  #     _target_: anemoi.graphs.nodes.DynamicTriNodes
 
 
 edges:
