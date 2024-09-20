@@ -124,10 +124,9 @@ class AnemoiTrainer:
 
         from anemoi.graphs.create import GraphCreator
 
-        return GraphCreator(config=self.config.graph).create(
-            save_path=graph_filename,
-            overwrite=self.config.graph.overwrite,
-        )
+        creator = GraphCreator(config=self.config.graph)
+        graph = creator.create(save_path=graph_filename, overwrite=self.config.graph.overwrite)
+        return graph
 
     @cached_property
     def model(self) -> GraphForecaster:

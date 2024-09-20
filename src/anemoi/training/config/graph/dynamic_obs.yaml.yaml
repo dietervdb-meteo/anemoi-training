@@ -1,0 +1,28 @@
+edges:
+  ## Dataset: obs_1
+  # Encoder configuration
+  - source_name: obs_1
+    target_name: hidden
+    edge_builder:
+      _target_: anemoi.graphs.edges.CutOffEdges # options: KNNEdges, CutOffEdges
+      cutoff_factor: 0.6 # only for cutoff method
+  # Decoder configuration
+  - source_name: hidden
+    target_name: obs_1
+    edge_builder:
+      _target_: anemoi.graphs.edges.KNNEdges # options: KNNEdges, CutOffEdges
+      num_nearest_neighbours: 3 # only for knn method
+  ## Dataset: obs_2
+  # Encoder configuration
+  - source_name: obs_2
+    target_name: hidden
+    edge_builder:
+      _target_: anemoi.graphs.edges.CutOffEdges # options: KNNEdges, CutOffEdges
+      cutoff_factor: 0.6 # only for cutoff method
+  # Decoder configuration
+  - source_name: hidden
+    target_name: obs_2
+    edge_builder:
+      _target_: anemoi.graphs.edges.KNNEdges # options: KNNEdges, CutOffEdges
+      num_nearest_neighbours: 3 # only for knn method
+

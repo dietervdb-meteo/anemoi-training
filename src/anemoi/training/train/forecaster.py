@@ -79,7 +79,7 @@ class GraphForecaster(pl.LightningModule):
 
         self.save_hyperparameters()
 
-        self.latlons_data = graph_data[config.graph.data].x
+        # self.latlons_data = graph_data[config.graph.data].x # this line should move somewhere else anyway
         self.loss_weights = graph_data[config.graph.data][config.model.node_loss_weight].squeeze()
 
         self.logger_enabled = config.diagnostics.log.wandb.enabled or config.diagnostics.log.mlflow.enabled

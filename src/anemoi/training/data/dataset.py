@@ -14,6 +14,7 @@ from typing import Callable
 
 import numpy as np
 import torch
+from anemoi.datasets.data.observations import ListOfArray
 from einops import rearrange
 from torch.utils.data import IterableDataset
 from torch.utils.data import get_worker_info
@@ -234,8 +235,22 @@ class NativeGridDataset(IterableDataset):
             start = i - (self.multi_step - 1) * self.timeincrement
             end = i + (self.rollout + 1) * self.timeincrement
 
-            x = self.data[start : end : self.timeincrement]
-            x = rearrange(x, "dates variables ensemble gridpoints -> dates ensemble gridpoints variables")
+            x = []
+            for i in range(start, end, self.timeincrement):
+                x.append(self.data[i])
+
+            x = [ListOfArray(v) for v in x]
+
+            def _rearrange(arr):
+                assert isinstance(arr, np.ndarray), type(arr)
+                if len(arr.shape) == 3:
+                    return rearrange(arr, "variables ensemble gridpoints -> gridpoints ensemble variables")
+                return rearrange(arr, "variables gridpoints -> gridpoints variables")
+
+            x = [v.map(_rearrange) for v in x]
+
+            print("😉", x)
+
             self.ensemble_dim = 1
 
             yield torch.from_numpy(x)

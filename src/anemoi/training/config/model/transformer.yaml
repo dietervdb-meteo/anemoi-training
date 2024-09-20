@@ -8,11 +8,11 @@ processor:
   _target_: anemoi.models.layers.processor.TransformerProcessor
   _convert_: all
   activation: ${model.activation}
-  num_layers: 16
+  num_layers: 4
   num_chunks: 2
   mlp_hidden_ratio: 4 # GraphTransformer or Transformer only
-  num_heads: 16 # GraphTransformer or Transformer only
-  window_size: 512
+  num_heads: 2 # GraphTransformer or Transformer only
+  window_size: 64
   dropout_p: 0.0 # GraphTransformer
 
 encoder:
@@ -23,7 +23,7 @@ encoder:
   activation: ${model.activation}
   num_chunks: 1
   mlp_hidden_ratio: 4 # GraphTransformer or Transformer only
-  num_heads: 16 # GraphTransformer or Transformer only
+  num_heads: 2 # GraphTransformer or Transformer only
 
 
 decoder:
@@ -34,7 +34,7 @@ decoder:
   activation: ${model.activation}
   num_chunks: 1
   mlp_hidden_ratio: 4 # GraphTransformer or Transformer only
-  num_heads: 16 # GraphTransformer or Transformer only
+  num_heads: 2 # GraphTransformer or Transformer only
 
 trainable_parameters:
   data: 8
