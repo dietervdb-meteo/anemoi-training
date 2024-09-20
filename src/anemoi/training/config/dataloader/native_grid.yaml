@@ -51,6 +51,18 @@ dataset:
           - metar_sin_longitude
           - metar_stalt
           - metar_t2m_0
+      - dataset: observations-ea-ofb-0001-2018-2023-noaa-20-atms-radiances-v1
+        frequency: 6h # this may become optional
+        window: (-6, 0) # this may become optional
+        rename_prefix: noaa_atms # this may become optional
+        is_observations: true # will desappear
+        select:
+          - noaa_atms_cos_latitude
+          - noaa_atms_sin_latitude
+          - noaa_atms_cos_longitude
+          - noaa_atms_sin_longitude
+          - noaa_atms_rawbt_2
+      #    - noaa_atms_rawbt_22
       - dataset: aifs-ea-an-oper-0001-mars-o96-1979-2022-6h-v6
 
 training: ${dataloader.dataset}

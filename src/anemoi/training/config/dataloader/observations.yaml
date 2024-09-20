@@ -78,7 +78,8 @@ dataset:
         - sin_longitude
         - rawbt_2
         - rawbt_22
-    - dataset: aifs-ea-an-oper-0001-mars-o96-1979-2022-6h-v6
+    #- dataset: aifs-ea-an-oper-0001-mars-o96-1979-2022-6h-v6
+#    - dataset: aifs-ea-an-oper-0001-mars-o48-1979-2022-6h-v6
 
  training:
   dataset: ${dataloader.dataset}

@@ -240,6 +240,7 @@ class NativeGridDataset(IterableDataset):
                 x.append(self.data[i])
 
             x = [ListOfArray(v) for v in x]
+            print("INPUT", x)
 
             def _rearrange(arr):
                 assert isinstance(arr, np.ndarray), type(arr)
@@ -249,7 +250,8 @@ class NativeGridDataset(IterableDataset):
 
             x = [v.map(_rearrange) for v in x]
 
-            print("😉", x)
+            print("😉   ->", x)
+            print()
 
             self.ensemble_dim = 1
 
