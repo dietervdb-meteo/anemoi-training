@@ -35,6 +35,7 @@ from anemoi.training.distributed.strategy import DDPGroupStrategy
 from anemoi.training.train.forecaster import GraphForecaster
 from anemoi.training.utils.jsonify import map_config_to_primitives
 from anemoi.training.utils.schemas.base_config import BaseConfig
+from anemoi.training.utils.schemas.training import TrainingConfig
 from anemoi.training.utils.seeding import get_base_seed
 
 if TYPE_CHECKING:
@@ -44,6 +45,7 @@ LOGGER = logging.getLogger(__name__)
 
 cs = ConfigStore.instance()
 cs.store(name="base_config", node=BaseConfig)
+cs.store(group="training", name="training", node=TrainingConfig)
 
 
 class AnemoiTrainer:
