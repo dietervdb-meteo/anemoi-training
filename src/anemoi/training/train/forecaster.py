@@ -219,6 +219,13 @@ class GraphForecaster(pl.LightningModule):
         validation_mode: bool = False,
     ) -> tuple[torch.Tensor, Mapping[str, torch.Tensor]]:
         del batch_idx
+
+        assert isinstance(batch, list), type(batch)
+        assert all(isinstance(i, list) for i in batch), [type(i) for i in batch]
+        for i in batch:
+            assert all(isinstance(j, torch.Tensor) for j in i), [type(j) for j in i]
+        print('Entering _step 💬. Is this the data structure you want?')
+
         loss = torch.zeros(1, dtype=batch.dtype, device=self.device, requires_grad=False)
         # for validation not normalized in-place because remappers cannot be applied in-place
         batch = self.model.pre_processors(batch, in_place=not validation_mode)

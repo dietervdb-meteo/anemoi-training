@@ -255,7 +255,10 @@ class NativeGridDataset(IterableDataset):
 
             self.ensemble_dim = 1
 
-            yield torch.from_numpy(x)
+            
+            x = [v.map(lambda v: torch.from_numpy(v)) for v in x]
+            x = [v.as_list() for v in x]
+            yield x
 
     def __repr__(self) -> str:
         return f"""
