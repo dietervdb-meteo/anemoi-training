@@ -21,7 +21,7 @@ import numpy as np
 import pytorch_lightning as pl
 import torch
 from anemoi.utils.provenance import gather_provenance_info
-from omegaconf import DictConfig
+from hydra.core.config_store import ConfigStore
 from omegaconf import OmegaConf
 from pytorch_lightning.profilers import PyTorchProfiler
 from pytorch_lightning.utilities.rank_zero import rank_zero_only
@@ -34,6 +34,7 @@ from anemoi.training.diagnostics.logger import get_wandb_logger
 from anemoi.training.distributed.strategy import DDPGroupStrategy
 from anemoi.training.train.forecaster import GraphForecaster
 from anemoi.training.utils.jsonify import map_config_to_primitives
+from anemoi.training.utils.schemas.base_config import BaseConfig
 from anemoi.training.utils.seeding import get_base_seed
 
 if TYPE_CHECKING:
@@ -41,11 +42,14 @@ if TYPE_CHECKING:
 
 LOGGER = logging.getLogger(__name__)
 
+cs = ConfigStore.instance()
+cs.store(name="base_config", node=BaseConfig)
+
 
 class AnemoiTrainer:
     """Utility class for training the model."""
 
-    def __init__(self, config: DictConfig) -> None:
+    def __init__(self, config: BaseConfig) -> None:
         """Initialize the Anemoi trainer.
 
         Parameters
@@ -350,8 +354,8 @@ class AnemoiTrainer:
         LOGGER.debug("---- DONE. ----")
 
 
-@hydra.main(version_base=None, config_path="../config", config_name="config")
-def main(config: DictConfig) -> None:
+@hydra.main(version_base=None, config_path="../config", config_name="debug")
+def main(config: BaseConfig) -> None:
     AnemoiTrainer(config).train()
 
 
