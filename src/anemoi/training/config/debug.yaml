@@ -1,6 +1,6 @@
 defaults:
 - data: zarr
-- dataloader: native_grid
+- dataloader: observations
 - diagnostics: eval_rollout
 - hardware: atos
 - graph: processor_only

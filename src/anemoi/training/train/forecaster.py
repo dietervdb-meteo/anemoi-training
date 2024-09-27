@@ -6,7 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 #
-
+from typing import List
 import logging
 import math
 import os
@@ -23,6 +23,7 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig
 from omegaconf import OmegaConf
 from timm.scheduler import CosineLRScheduler
+from torch import Tensor
 from torch.distributed.distributed_c10d import ProcessGroup
 from torch.distributed.optim import ZeroRedundancyOptimizer
 from torch.utils.checkpoint import checkpoint
@@ -124,11 +125,11 @@ class GraphForecaster(pl.LightningModule):
             config.hardware.num_gpus_per_node * config.hardware.num_nodes / config.hardware.num_gpus_per_model,
         )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: Tensor) -> Tensor:
         return self.model(x, self.model_comm_group)
 
     @staticmethod
-    def metrics_loss_scaling(config: DictConfig, data_indices: IndexCollection) -> tuple[dict, torch.Tensor]:
+    def metrics_loss_scaling(config: DictConfig, data_indices: IndexCollection) -> tuple[dict, Tensor]:
         metric_ranges = defaultdict(list)
         metric_ranges_validation = defaultdict(list)
         loss_scaling = (
@@ -187,13 +188,13 @@ class GraphForecaster(pl.LightningModule):
         LOGGER.debug("set_model_comm_group: %s", model_comm_group)
         self.model_comm_group = model_comm_group
 
-    def advance_input(
+    def advance_field_input(
         self,
-        x: torch.Tensor,
-        y_pred: torch.Tensor,
-        batch: torch.Tensor,
+        x: Tensor,
+        y_pred: Tensor,
+        batch: Tensor,
         rollout_step: int,
-    ) -> torch.Tensor:
+    ) -> Tensor:
         x = x.roll(-1, dims=1)
 
         # Get prognostic variables
@@ -203,7 +204,7 @@ class GraphForecaster(pl.LightningModule):
         ]
 
         # get new "constants" needed for time-varying fields
-        x[:, -1, :, :, self.data_indices.internal_model.input.forcing] = batch[
+        x[:, -1, :, :, self.data_indices.internal_model.input.forcing] = batch[-1][  # TODO: do not hardcode ERA5 list index
             :,
             self.multi_step + rollout_step,
             :,
@@ -214,24 +215,26 @@ class GraphForecaster(pl.LightningModule):
 
     def _step(
         self,
-        batch: torch.Tensor,
+        batch: Tensor,
         batch_idx: int,
         validation_mode: bool = False,
-    ) -> tuple[torch.Tensor, Mapping[str, torch.Tensor]]:
+    ) -> tuple[Tensor, Mapping[str, Tensor]]:
         del batch_idx
 
         assert isinstance(batch, list), type(batch)
+        print(f'len(batch) = {len(batch)} 💬.')
         assert all(isinstance(i, list) for i in batch), [type(i) for i in batch]
-        for i in batch:
-            assert all(isinstance(j, torch.Tensor) for j in i), [type(j) for j in i]
+        for ii, i in enumerate(batch):
+            print(f'len(batch[{ii}]) = {len(i)} 💬.')
+            assert all(isinstance(j, Tensor) for j in i), [type(j) for j in i]
         print('Entering _step 💬. Is this the data structure you want?')
-
-        loss = torch.zeros(1, dtype=batch.dtype, device=self.device, requires_grad=False)
+        loss = torch.zeros(1, dtype=batch[0][0].dtype, device=self.device, requires_grad=False)
         # for validation not normalized in-place because remappers cannot be applied in-place
-        batch = self.model.pre_processors(batch, in_place=not validation_mode)
+        # batch = self.model.pre_processors(batch, in_place=not validation_mode)
         metrics = {}
 
         # start rollout of preprocessed batch
+        x: List[Tensor] = [b[0] for b in batch]
         x = batch[
             :,
             0 : self.multi_step,
@@ -248,7 +251,7 @@ class GraphForecaster(pl.LightningModule):
             # y includes the auxiliary variables, so we must leave those out when computing the loss
             loss += checkpoint(self.loss, y_pred, y, use_reentrant=False)
 
-            x = self.advance_input(x, y_pred, batch, rollout_step)
+            x = self.advance_field_input(x, y_pred, batch, rollout_step)
 
             if validation_mode:
                 metrics_next, y_preds_next = self.calculate_val_metrics(
@@ -266,8 +269,8 @@ class GraphForecaster(pl.LightningModule):
 
     def calculate_val_metrics(
         self,
-        y_pred: torch.Tensor,
-        y: torch.Tensor,
+        y_pred: Tensor,
+        y: Tensor,
         rollout_step: int,
         enable_plot: bool = False,
     ) -> tuple[dict, list]:
@@ -285,7 +288,7 @@ class GraphForecaster(pl.LightningModule):
             y_preds.append(y_pred)
         return metrics, y_preds
 
-    def training_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
+    def training_step(self, batch: Tensor, batch_idx: int) -> Tensor:
         train_loss, _, _ = self._step(batch, batch_idx)
         self.log(
             "train_wmse",
@@ -327,7 +330,7 @@ class GraphForecaster(pl.LightningModule):
             LOGGER.debug("Rollout window length: %d", self.rollout)
         self.rollout = min(self.rollout, self.rollout_max)
 
-    def validation_step(self, batch: torch.Tensor, batch_idx: int) -> None:
+    def validation_step(self, batch: Tensor, batch_idx: int) -> None:
         with torch.no_grad():
             val_loss, metrics, y_preds = self._step(batch, batch_idx, validation_mode=True)
         self.log(

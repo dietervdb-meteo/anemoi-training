@@ -1,0 +1,245 @@
+prefetch_factor: 2
+
+num_workers:
+  training: 1
+  validation: 1
+  test: 1
+  predict: 1
+batch_size:
+  training: 1
+  validation: 1
+  test: 4
+  predict: 4
+
+# ============
+# Default effective batch_size for training is 16
+# For the o96 resolution, default per-gpu batch_size is 2 (8 gpus required)
+# The global lr is calculated as:
+# global_lr = local_lr * num_gpus_per_node * num_nodes / gpus_per_model
+# Assuming a constant effective batch_size, any change in the per_gpu batch_size
+# should come with a rescaling of the local_lr to keep a constant global_lr
+# ============
+
+# runs only N training batches [N = integer | null]
+# if null then we run through all the batches
+limit_batches:
+  training: null
+  validation: null
+  test: 20
+  predict: 20
+
+# ============
+# Dataloader definitions
+# These follow the anemoi-datasets patterns
+# You can make these as complicated for merging as you like
+# See https://anemoi-datasets.readthedocs.io
+# ============
+
+dataset:
+ observations: # for now observations must be on top level, will be removed
+  multiple: # automatically pad the datasets with the min and max dates, will be renamed to zip
+    - dataset: observations-od-ai-0001-2017-2022-meteosat-8-iodc-seviri-v1
+      frequency: 6h             # this may become optional
+      window: (-6, 0)           # this may become optional
+      rename_prefix: seviri     # this may become optional
+      is_observations: true     # will desappear
+      select:
+        - cos_latitude
+        - sin_latitude
+        - cos_longitude
+        - sin_longitude
+        - cos_vza
+        - sin_vza
+        - rawbt_4
+        - rawbt_5
+        - rawbt_6
+        - rawbt_11
+    - dataset: observations-ea-ofb-0001-2004-2023-combined-metar-v1
+      frequency: 6h             # this may become optional
+      window: (-6, 0)           # this may become optional
+      rename_prefix: metar    # this may become optional
+      is_observations: true     # will disappear
+      select:
+        - cos_latitude
+        - sin_latitude
+        - cos_longitude
+        - sin_longitude
+        - stalt
+        - t2m_0
+    - dataset: observations-ea-ofb-0001-2018-2023-noaa-20-atms-radiances-v1
+      frequency: 6h              # this may become optional
+      window: (-6, 0)           # this may become optional
+      rename_prefix: noaa_atms # this may become optional
+      is_observations: true      # will desappear
+      select:
+        - cos_latitude
+        - sin_latitude
+        - cos_longitude
+        - sin_longitude
+        - rawbt_2
+        - rawbt_22
+    #- dataset: aifs-ea-an-oper-0001-mars-o96-1979-2022-6h-v6
+#    - dataset: aifs-ea-an-oper-0001-mars-o48-1979-2022-6h-v6
+
+ training:
+  dataset: ${dataloader.dataset}
+  start: 2017-01-01 00:00:00
+  end: 2021-12-31 18:00:00
+
+validation:
+  dataset: ${dataloader.dataset}
+  start: 2022-01-01 00:00:00
+  end: 2022-12-31 18:00:00
+
+normalizer:
+    default: mean-std
+    min-max:
+    mean-std:
+      - seviri_rawbt_4
+      - seviri_rawbt_5
+      - seviri_rawbt_6
+      - seviri_rawbt_11
+      - metar_stalt
+      - metar_t2m_0
+      - noaa_atms_rawbt_2
+    none:
+      # era5
+      - cos_latitude
+      - cos_longitude
+      - sin_latitude
+      - sin_longitude
+      - cos_julian_day
+      - cos_local_time
+      - sin_julian_day
+      - sin_local_time
+      - insolation
+      - lsm
+      - sdor
+      - slor
+      # seviri (meteosat-8)
+      - seviri_cos_latitude
+      - seviri_sin_latitude
+      - seviri_cos_longitude
+      - seviri_sin_longitude
+      - seviri_cos_vza
+      - seviri_sin_vza
+      # metar
+      - metar_cos_latitude
+      - metar_sin_latitude
+      - metar_cos_longitude
+      - metar_sin_longitude
+      # noaa-atms
+      - noaa_atms_cos_latitude
+      - noaa_atms_sin_latitude
+      - noaa_atms_cos_longitude
+      - noaa_atms_sin_longitude
+
+encoders:
+  ###################
+  # ERA5 ENCODER
+  ###################
+  - name: era5
+    forcing:
+      - cos_latitude
+      - cos_longitude
+      - sin_latitude
+      - sin_longitude
+      - cos_julian_day
+      - cos_local_time
+      - sin_julian_day
+      - sin_local_time
+      - insolation
+      - lsm
+      - sdor
+      - slor
+      - z
+    # how do we tell the encoder to also use z_500, t_850, etc?
+    # maybe prefix with *, to make the config easier to read / write?
+    imputer:
+      default: none
+    # processors including imputers and normalizers are applied in order of definition
+    processors:
+      # example_imputer:
+        # _target_: anemoi.models.preprocessing.imputer.InputImputer
+        # _convert_: all
+        # config: ${data.imputer}
+      normalizer:
+        _target_: anemoi.models.preprocessing.normalizer.InputNormalizer
+        _convert_: all
+        config: ${data.normalizer}
+    # Values set in the code
+    num_features: null # number of features in the forecast state
+  ###################
+  # METEOSAT8 ENCODER
+  ###################
+  - name: seviri
+    forcing:
+      - seviri_cos_latitude
+      - seviri_sin_latitude
+      - seviri_cos_longitude
+      - seviri_sin_longitude
+      - seviri_cos_vza
+      - seviri_sin_vza
+    inputs:
+      - seviri_rawbt_4
+      - seviri_rawbt_5
+      - seviri_rawbt_6
+      - seviri_rawbt_11
+    imputer:
+      default: none
+    processors:
+      normalizer:
+        _target_: anemoi.models.preprocessing.normalizer.InputNormalizer
+        _convert_: all
+        config: ${data.normalizer}
+    num_features: null
+
+decoders:
+  ###################
+  # ERA5 ENCODER
+  ###################
+  - name: era5
+    forcing: null
+    diagnostic:
+      - tp
+      - cp
+    outputs:
+      - z_500
+      # ...
+    # how do we tell the encoder to also use z_500, t_850, etc?
+    # maybe prefix with *, to make the config easier to read / write?
+    imputer:
+      default: none
+    # processors including imputers and normalizers are applied in order of definition
+    processors:
+      # example_imputer:
+        # _target_: anemoi.models.preprocessing.imputer.InputImputer
+        # _convert_: all
+        # config: ${data.imputer}
+      normalizer:
+        _target_: anemoi.models.preprocessing.normalizer.InputNormalizer
+        _convert_: all
+        config: ${data.normalizer}
+    # Values set in the code
+    num_features: null # number of features in the forecast state
+  ###################
+  # METAR DECODER
+  ###################
+  - name: metar
+    forcing:
+      - seviri_cos_latitude
+      - seviri_sin_latitude
+      - seviri_cos_longitude
+      - seviri_sin_longitude
+      - seviri_cos_vza
+      - seviri_sin_vza
+    inputs:
+      - metar_t2m_0
+    imputer:
+      default: none
+    processors:
+      normalizer:
+        _target_: anemoi.models.preprocessing.normalizer.InputNormalizer
+        _convert_: all
+        config: ${data.normalizer}
+    num_features: null

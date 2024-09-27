@@ -1,28 +1,42 @@
 edges:
-  ## Dataset: obs_1
+  ## Dataset: metar
   # Encoder configuration
-  - source_name: obs_1
+  - source_name: metar
     target_name: hidden
     edge_builder:
       _target_: anemoi.graphs.edges.CutOffEdges # options: KNNEdges, CutOffEdges
       cutoff_factor: 0.6 # only for cutoff method
   # Decoder configuration
   - source_name: hidden
-    target_name: obs_1
+    target_name: metar
     edge_builder:
       _target_: anemoi.graphs.edges.KNNEdges # options: KNNEdges, CutOffEdges
       num_nearest_neighbours: 3 # only for knn method
-  ## Dataset: obs_2
+  
+  ## Dataset: noaa-20-atms
   # Encoder configuration
-  - source_name: obs_2
+  - source_name: noaa-20-atms
     target_name: hidden
     edge_builder:
       _target_: anemoi.graphs.edges.CutOffEdges # options: KNNEdges, CutOffEdges
       cutoff_factor: 0.6 # only for cutoff method
   # Decoder configuration
   - source_name: hidden
-    target_name: obs_2
+    target_name: noaa-20-atms
     edge_builder:
       _target_: anemoi.graphs.edges.KNNEdges # options: KNNEdges, CutOffEdges
       num_nearest_neighbours: 3 # only for knn method
 
+  ## Dataset: era5
+  # Encoder configuration
+  - source_name: era5
+    target_name: hidden
+    edge_builder:
+      _target_: anemoi.graphs.edges.CutOffEdges # options: KNNEdges, CutOffEdges
+      cutoff_factor: 0.6 # only for cutoff method
+  # Decoder configuration
+  - source_name: hidden
+    target_name: era5
+    edge_builder:
+      _target_: anemoi.graphs.edges.KNNEdges # options: KNNEdges, CutOffEdges
+      num_nearest_neighbours: 3 # only for knn method
