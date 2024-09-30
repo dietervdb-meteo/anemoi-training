@@ -143,26 +143,22 @@ encoders:
   # METEOSAT8 ENCODER
   ###################
   - name: seviri
-    forcing:
+    inputs:
       - seviri_cos_latitude
       - seviri_sin_latitude
       - seviri_cos_longitude
       - seviri_sin_longitude
       - seviri_cos_vza
       - seviri_sin_vza
-    inputs:
       - seviri_rawbt_4
       - seviri_rawbt_5
       - seviri_rawbt_6
       - seviri_rawbt_11
-    imputer:
-      default: none
-    processors:
-      normalizer:
-        _target_: anemoi.models.preprocessing.normalizer.InputNormalizer
-        _convert_: all
-        config: ${data.normalizer}
-    num_features: null
+    outputs:
+      - seviri_rawbt_4
+      - seviri_rawbt_5
+      - seviri_rawbt_6
+      - seviri_rawbt_11
 
 decoders:
   ###################

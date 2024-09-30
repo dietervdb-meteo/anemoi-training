@@ -1,4 +1,4 @@
-prefetch_factor: 2
+prefetch_factor: 1
 
 num_workers:
   training: 1
@@ -99,6 +99,16 @@ dataset:
           - noaa-20-atms_rawbt_21
           - noaa-20-atms_rawbt_22
       - dataset: aifs-ea-an-oper-0001-mars-o96-1979-2022-6h-v6
+    ##########################################
+    # ADD FUNCTIONALITY TO SPLIT THE TENSORS
+    ##########################################
+    outputs:
+      - metar_*
+      - noaa-20-atms_*
+      # - era5 -- enumerate all fields?
+      # default behavior if we don't specify anything? split per dataset
+      # some shorthand notation to split across each dataset?
+      # may be a dictionary?
 
 training: ${dataloader.dataset}
 validation: ${dataloader.dataset}
