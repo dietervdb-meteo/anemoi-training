@@ -1,9 +1,9 @@
 defaults:
-- data: zarr
+- data: observations
 - dataloader: observations
 - diagnostics: eval_rollout
 - hardware: atos
-- graph: processor_only
+- graph: observations
 - model: transformer
 - training: default
 - _self_

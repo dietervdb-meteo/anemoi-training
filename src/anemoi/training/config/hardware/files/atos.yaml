@@ -1,5 +1,7 @@
-dataset: aifs-ea-an-oper-0001-mars-${data.resolution}-1979-2022-6h-v6.zarr
-graph: graph_enc_proc_dec_${data.resolution}.pt
+dataset: null
+graph: rull
+# dataset: aifs-ea-an-oper-0001-mars-${data.resolution}-1979-2022-6h-v6.zarr
+# graph: graph_enc_proc_dec_${data.resolution}.pt
 
 checkpoint:
   every_n_epochs: anemoi-by_epoch-epoch_{epoch:03d}-step_{step:06d}

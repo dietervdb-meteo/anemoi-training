@@ -1,42 +1,115 @@
-edges:
-  ## Dataset: metar
-  # Encoder configuration
-  - source_name: metar
-    target_name: hidden
-    edge_builder:
-      _target_: anemoi.graphs.edges.CutOffEdges # options: KNNEdges, CutOffEdges
-      cutoff_factor: 0.6 # only for cutoff method
-  # Decoder configuration
-  - source_name: hidden
-    target_name: metar
-    edge_builder:
-      _target_: anemoi.graphs.edges.KNNEdges # options: KNNEdges, CutOffEdges
-      num_nearest_neighbours: 3 # only for knn method
-  
-  ## Dataset: noaa-20-atms
-  # Encoder configuration
-  - source_name: noaa-20-atms
-    target_name: hidden
-    edge_builder:
-      _target_: anemoi.graphs.edges.CutOffEdges # options: KNNEdges, CutOffEdges
-      cutoff_factor: 0.6 # only for cutoff method
-  # Decoder configuration
-  - source_name: hidden
-    target_name: noaa-20-atms
-    edge_builder:
-      _target_: anemoi.graphs.edges.KNNEdges # options: KNNEdges, CutOffEdges
-      num_nearest_neighbours: 3 # only for knn method
 
-  ## Dataset: era5
+---
+overwrite: True
+
+data: "era5"
+hidden: "hidden"
+
+nodes:
+  # Hidden nodes
+  hidden:
+    node_builder:
+      _target_: anemoi.graphs.nodes.TriNodes
+      resolution: 3  # number of refinements
+    attributes:
+      area_weight:
+        _target_: anemoi.graphs.nodes.attributes.AreaWeights # options: Area, Uniform
+        norm: unit-max  # options: l1, l2, unit-max, unit-sum, unit-std
+
+  # Data nodes
+  era5:
+    node_builder:
+      _target_: anemoi.graphs.nodes.ZarrDatasetNodes # options: ZarrDatasetNodes, NPZFileNodes
+      dataset: aifs-ea-an-oper-0001-mars-o96-1979-2022-6h-v6
+    attributes: ${graph.attributes.nodes}
+
+edges:
+  # Processor configuration
+  - source_name: hidden
+    target_name: hidden
+    edge_builder:
+      _target_: anemoi.graphs.edges.MultiScaleEdges
+      x_hops: 1
+    attributes:
+      edge_length:
+        _target_: anemoi.graphs.edges.attributes.EdgeLength
+        norm: unit-std
+      edge_dirs:
+        _target_: anemoi.graphs.edges.attributes.EdgeDirection
+        norm: unit-std
+
   # Encoder configuration
   - source_name: era5
-    target_name: hidden
+    target_name: ${graph.hidden}
     edge_builder:
       _target_: anemoi.graphs.edges.CutOffEdges # options: KNNEdges, CutOffEdges
       cutoff_factor: 0.6 # only for cutoff method
-  # Decoder configuration
+    attributes: ${graph.attributes.edges}
   - source_name: hidden
+    # Decoder configuration
     target_name: era5
     edge_builder:
       _target_: anemoi.graphs.edges.KNNEdges # options: KNNEdges, CutOffEdges
       num_nearest_neighbours: 3 # only for knn method
+    attributes: ${graph.attributes.edges}
+
+
+
+attributes:
+  nodes:
+    area_weight:
+      _target_: anemoi.graphs.nodes.attributes.AreaWeights # options: Area, Uniform
+      norm: unit-max # options: l1, l2, unit-max, unit-sum, unit-std
+  edges:
+    edge_length:
+      _target_: anemoi.graphs.edges.attributes.EdgeLength
+      norm: unit-std
+    edge_dirs:
+      _target_: anemoi.graphs.edges.attributes.EdgeDirection
+      norm: unit-std
+
+
+## TODO: Something like this may be better?
+##
+##   edges:
+##     ## Dataset: metar
+##     # Encoder configuration
+##     - source_name: metar
+##       target_name: hidden
+##       edge_builder:
+##         _target_: anemoi.graphs.edges.CutOffEdges # options: KNNEdges, CutOffEdges
+##         cutoff_factor: 0.6 # only for cutoff method
+##     # Decoder configuration
+##     - source_name: hidden
+##       target_name: metar
+##       edge_builder:
+##         _target_: anemoi.graphs.edges.KNNEdges # options: KNNEdges, CutOffEdges
+##         num_nearest_neighbours: 3 # only for knn method
+##
+##     ## Dataset: noaa-20-atms
+##     # Encoder configuration
+##     - source_name: noaa-20-atms
+##       target_name: hidden
+##       edge_builder:
+##         _target_: anemoi.graphs.edges.CutOffEdges # options: KNNEdges, CutOffEdges
+##         cutoff_factor: 0.6 # only for cutoff method
+##     # Decoder configuration
+##     - source_name: hidden
+##       target_name: noaa-20-atms
+##       edge_builder:
+##         _target_: anemoi.graphs.edges.KNNEdges # options: KNNEdges, CutOffEdges
+##         num_nearest_neighbours: 3 # only for knn method
+##
+##     ## Dataset: era5
+##     # Encoder configuration
+##     - source_name: era5
+##       target_name: hidden
+##       edge_builder:
+##         _target_: anemoi.graphs.edges.CutOffEdges # options: KNNEdges, CutOffEdges
+##         cutoff_factor: 0.6 # only for cutoff method
+##     # Decoder configuration
+##     - source_name: hidden
+##       target_name: era5
+##       edge_builder:
+##         _target_: anemoi.graphs.edges.KNNEdges # options: KNNEdges, CutOffEdges
+##         num_nearest_neighbours: 3 # only for knn method

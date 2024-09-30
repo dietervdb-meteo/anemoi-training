@@ -1,4 +1,4 @@
-data: /home/mlx/ai-ml/datasets/stable/
+data: ''
 grids: /home/mlx/ai-ml/grids/
 output: ${oc.env:SCRATCH}/aifs/${data.resolution}/
 
