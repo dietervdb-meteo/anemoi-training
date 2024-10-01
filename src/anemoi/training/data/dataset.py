@@ -14,7 +14,7 @@ from typing import Callable
 
 import numpy as np
 import torch
-from anemoi.datasets.data.observations import ListOfArray
+from anemoi.datasets.data.observations import AnemoiState
 from einops import rearrange
 from torch.utils.data import IterableDataset
 from torch.utils.data import get_worker_info
@@ -239,7 +239,7 @@ class NativeGridDataset(IterableDataset):
             for i in range(start, end, self.timeincrement):
                 x.append(self.data[i])
 
-            x = [ListOfArray(v) for v in x]
+            x = [AnemoiState(v) for v in x]
             print("INPUT", x)
 
             def _rearrange(arr):

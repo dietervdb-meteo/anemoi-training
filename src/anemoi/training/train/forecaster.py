@@ -32,6 +32,7 @@ from torch_geometric.data import HeteroData
 from anemoi.training.losses.mse import WeightedMSELoss
 from anemoi.training.losses.utils import grad_scaler
 from anemoi.training.utils.jsonify import map_config_to_primitives
+from anemoi.datasets.data.observations import TrainingAnemoiSample
 
 LOGGER = logging.getLogger(__name__)
 
@@ -221,14 +222,14 @@ class GraphForecaster(pl.LightningModule):
     ) -> tuple[Tensor, Mapping[str, Tensor]]:
         del batch_idx
 
-        assert isinstance(batch, list), type(batch)
-        print(f'len(batch) = {len(batch)} 💬.')
-        assert all(isinstance(i, list) for i in batch), [type(i) for i in batch]
-        for ii, i in enumerate(batch):
-            print(f'len(batch[{ii}]) = {len(i)} 💬.')
-            assert all(isinstance(j, Tensor) for j in i), [type(j) for j in i]
-        print('Entering _step 💬. Is this the data structure you want?')
-        loss = torch.zeros(1, dtype=batch[0][0].dtype, device=self.device, requires_grad=False)
+        # batch is actually not a batch but a single training sample
+        # see the class definition of TrainingAnemoiSample InferenceAnemoiSample and AnemoiStates
+        sample = TrainingAnemoiSample(batch)
+
+        print("Entering _step")
+        print(f"training sample = {sample} 💬.")
+
+        loss = torch.zeros(1, dtype=sample.dtype, device=self.device, requires_grad=False)
         # for validation not normalized in-place because remappers cannot be applied in-place
         # batch = self.model.pre_processors(batch, in_place=not validation_mode)
         metrics = {}
