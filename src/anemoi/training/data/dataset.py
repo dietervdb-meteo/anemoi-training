@@ -14,7 +14,7 @@ from typing import Callable
 
 import numpy as np
 import torch
-from anemoi.datasets.data.observations import AnemoiState
+from anemoi.datasets.data.observations import AnemoiState, TrainingAnemoiSample
 from einops import rearrange
 from torch.utils.data import IterableDataset
 from torch.utils.data import get_worker_info
@@ -239,7 +239,8 @@ class NativeGridDataset(IterableDataset):
             for i in range(start, end, self.timeincrement):
                 x.append(self.data[i])
 
-            x = [AnemoiState(v) for v in x]
+
+            x = TrainingAnemoiSample(x)
             print("INPUT", x)
 
             def _rearrange(arr):
@@ -248,16 +249,14 @@ class NativeGridDataset(IterableDataset):
                     return rearrange(arr, "variables ensemble gridpoints -> gridpoints ensemble variables")
                 return rearrange(arr, "variables gridpoints -> gridpoints variables")
 
-            x = [v.map(_rearrange) for v in x]
-
-            print("😉   ->", x)
-            print()
+            x = TrainingAnemoiSample(v.map(_rearrange) for v in x)
+            print('Rearranged')
 
             self.ensemble_dim = 1
-
             
-            x = [v.map(lambda v: torch.from_numpy(v)) for v in x]
-            x = [v.as_list() for v in x]
+            x = TrainingAnemoiSample(x)
+            x = x.numpy_to_torch()
+            x = x.as_tuple_of_tuples()
             yield x
 
     def __repr__(self) -> str:

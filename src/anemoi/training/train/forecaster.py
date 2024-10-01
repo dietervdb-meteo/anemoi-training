@@ -225,14 +225,21 @@ class GraphForecaster(pl.LightningModule):
         # batch is actually not a batch but a single training sample
         # see the class definition of TrainingAnemoiSample InferenceAnemoiSample and AnemoiStates
         sample = TrainingAnemoiSample(training_sample)
+        # sample.to('gpu')
+        # sample.to('cpu')
 
         print("Entering _step")
-        print(f"training sample = {sample} 💬.")
+        print(f"❗ training sample = {sample}.")
+        for state in sample:
+            print(state)
+            for v in state.as_tuple():
+                print(' ', v.size())
 
         loss = torch.zeros(1, dtype=sample.dtype, device=self.device, requires_grad=False)
         # for validation not normalized in-place because remappers cannot be applied in-place
         #training_sample = self.model.pre_processors(training_sample, in_place=not validation_mode)
         metrics = {}
+        exit()
 
         # start rollout of preprocessed batch
         x: List[Tensor] = [b[0] for b in batch]
