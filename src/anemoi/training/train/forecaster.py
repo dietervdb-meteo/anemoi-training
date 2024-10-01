@@ -6,17 +6,18 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 #
-from functools import cached_property
-from typing import List
 import logging
 import math
 import os
 from collections import defaultdict
 from collections.abc import Mapping
+from functools import cached_property
+from typing import List
 
 import numpy as np
 import pytorch_lightning as pl
 import torch
+from anemoi.datasets.data.observations import TrainingAnemoiSample
 from anemoi.models.data_indices.collection import IndexCollection
 from anemoi.models.interface import AnemoiModelInterface
 from anemoi.utils.config import DotDict
@@ -33,9 +34,24 @@ from torch_geometric.data import HeteroData
 from anemoi.training.losses.mse import WeightedMSELoss
 from anemoi.training.losses.utils import grad_scaler
 from anemoi.training.utils.jsonify import map_config_to_primitives
-from anemoi.datasets.data.observations import TrainingAnemoiSample
 
 LOGGER = logging.getLogger(__name__)
+
+
+def get_class(class_name: str):
+    import importlib
+
+    module_name, class_name = class_name.rsplit(".", 1)
+    module = importlib.import_module(module_name)
+    return module.__dict__[class_name]
+
+
+cls = get_class("anemoi.models.models.encoder_processor_decoder.AnemoiModelEncProcDec")
+print(cls)
+
+
+def instantiate_(_target_: str, **kwargs):
+    return get_class(_target_)(**kwargs)
 
 
 class GraphForecaster(pl.LightningModule):
@@ -228,7 +244,7 @@ class GraphForecaster(pl.LightningModule):
                 for k in lst:
                     if name.startswith(k) and k != lst[i]:
                         raise ValueError(
-                            f"Config error when indexing '{name}'. Index is {i,j}. The name starts with {k} but should start with {lst[i]} (list of keys is {lst})."
+                            f"Config error when indexing '{name}'. Index is {i, j}. The name starts with {k} but should start with {lst[i]} (list of keys is {lst}).",
                         )
 
         check_prefixes()

@@ -99,6 +99,8 @@ dataset:
           - noaa_20_atms_rawbt_21
           - noaa_20_atms_rawbt_22
       - dataset: aifs-ea-an-oper-0001-mars-o96-1979-2022-6h-v6
+        #start: 2017-01-01
+        #end: 2023-01-01
     ##########################################
     # ADD FUNCTIONALITY TO SPLIT THE TENSORS
     ##########################################
