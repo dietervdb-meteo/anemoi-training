@@ -216,7 +216,7 @@ class GraphForecaster(pl.LightningModule):
 
     def _step(
         self,
-        batch: Tensor,
+        training_sample: Tensor,
         batch_idx: int,
         validation_mode: bool = False,
     ) -> tuple[Tensor, Mapping[str, Tensor]]:
@@ -224,14 +224,14 @@ class GraphForecaster(pl.LightningModule):
 
         # batch is actually not a batch but a single training sample
         # see the class definition of TrainingAnemoiSample InferenceAnemoiSample and AnemoiStates
-        sample = TrainingAnemoiSample(batch)
+        sample = TrainingAnemoiSample(training_sample)
 
         print("Entering _step")
         print(f"training sample = {sample} 💬.")
 
         loss = torch.zeros(1, dtype=sample.dtype, device=self.device, requires_grad=False)
         # for validation not normalized in-place because remappers cannot be applied in-place
-        # batch = self.model.pre_processors(batch, in_place=not validation_mode)
+        #training_sample = self.model.pre_processors(training_sample, in_place=not validation_mode)
         metrics = {}
 
         # start rollout of preprocessed batch
