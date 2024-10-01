@@ -102,14 +102,15 @@ dataset:
     ##########################################
     # ADD FUNCTIONALITY TO SPLIT THE TENSORS
     ##########################################
-    rearrange:
-      - metar_*
-      - noaa_20_atms_*
-      - _others_
-      # - era5 -- enumerate all fields?
-      # default behavior if we don't specify anything? split per dataset
-      # some shorthand notation to split across each dataset?
-      # may be a dictionary?
+    #select_as_dict:
+    #  metar: metar_*
+    #  noaa_20_atms: noaa_20_atms_*
+    #  era5: _OTHERS_
+    # - era5 -- enumerate all fields that are not metar or noaa_20_atms
+
+    # default behavior if we don't specify anything? split per dataset
+    # some shorthand notation to split across each dataset?
+    # may be a dictionary?
 
 training: ${dataloader.dataset}
 validation: ${dataloader.dataset}

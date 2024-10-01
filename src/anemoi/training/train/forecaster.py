@@ -6,6 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 #
+from functools import cached_property
 from typing import List
 import logging
 import math
@@ -205,7 +206,9 @@ class GraphForecaster(pl.LightningModule):
         ]
 
         # get new "constants" needed for time-varying fields
-        x[:, -1, :, :, self.data_indices.internal_model.input.forcing] = batch[-1][  # TODO: do not hardcode ERA5 list index
+        x[:, -1, :, :, self.data_indices.internal_model.input.forcing] = batch[
+            -1
+        ][  # TODO: do not hardcode ERA5 list index
             :,
             self.multi_step + rollout_step,
             :,
@@ -213,6 +216,25 @@ class GraphForecaster(pl.LightningModule):
             self.data_indices.internal_data.input.forcing,
         ]
         return x
+
+    @cached_property
+    def _encoders_keys(self):
+        # TODO: make this flexible, read from config
+        # or remove it and use the data_indices directly and no dictionary
+        lst = ["metar", "noaa_20_atms", "era5"]  # this must match the order giving in the datasets.
+
+        def check_prefixes():
+            for name, (i, j) in self.data_indices.name_to_index.items():
+                for k in lst:
+                    if name.startswith(k) and k != lst[i]:
+                        raise ValueError(
+                            f"Config error when indexing '{name}'. Index is {i,j}. The name starts with {k} but should start with {lst[i]} (list of keys is {lst})."
+                        )
+
+        check_prefixes()
+
+        print(f"✅ encoders keys are hard coded {lst}")
+        return lst
 
     def _step(
         self,
@@ -229,15 +251,20 @@ class GraphForecaster(pl.LightningModule):
         # sample.to('cpu')
 
         print("Entering _step")
-        print(f"❗ training sample = {sample}.")
-        for state in sample:
-            print(state)
+        print(f"❗ Training sample = {sample}:")
+        for i, state in enumerate(sample):
+            print(i, state)
+            print(f"  state {i} as tuple:")
             for v in state.as_tuple():
-                print(' ', v.size())
+                print("  ", tuple(v.size()))
+            print(f"  state {i} as dict:")
+            for k, v in state.as_dict(self._encoders_keys).items():
+                print(f"    {k}: {tuple(v.size())}")
+        print()
 
         loss = torch.zeros(1, dtype=sample.dtype, device=self.device, requires_grad=False)
         # for validation not normalized in-place because remappers cannot be applied in-place
-        #training_sample = self.model.pre_processors(training_sample, in_place=not validation_mode)
+        # training_sample = self.model.pre_processors(training_sample, in_place=not validation_mode)
         metrics = {}
         exit()
 
