@@ -40,7 +40,7 @@ def main(path, filter):
 
     for i in range(len(ds)):
         date = ds.dates[i]
-        if not str(date).startswith(filter):
+        if filter and not str(date).startswith(filter):
             continue
 
         data = ds[i]
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     HERE = os.path.dirname(os.path.abspath(__file__))
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", help="Path to config file", default=f"{HERE}/config.yaml")
-    parser.add_argument("--filter", help="filter dates (ex: 2017 or 2017-11)", default="2017-11-11")
+    parser.add_argument("--filter", help="filter dates (ex: 2017 or 2017-11)")
     args = parser.parse_args()
 
     main(args.config, args.filter)

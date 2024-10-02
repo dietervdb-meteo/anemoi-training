@@ -237,7 +237,7 @@ class GraphForecaster(pl.LightningModule):
     def _encoders_keys(self):
         # TODO: make this flexible, read from config
         # or remove it and use the data_indices directly and no dictionary
-        lst = ["metar", "noaa_20_atms", "era5"]  # this must match the order given in the datasets.
+        lst = ["era5", "metar", "noaa_20_atms"]  # this must match the order given in the datasets.
 
         def check_prefixes():
             for name, (i, j) in self.data_indices.name_to_index.items():
