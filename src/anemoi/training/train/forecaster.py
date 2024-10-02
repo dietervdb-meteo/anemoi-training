@@ -17,7 +17,7 @@ from typing import List
 import numpy as np
 import pytorch_lightning as pl
 import torch
-from anemoi.datasets.data.observations import TrainingAnemoiSample
+from anemoi.datasets import AnemoiState, TrainingAnemoiSample
 from anemoi.models.data_indices.collection import IndexCollection
 from anemoi.models.interface import AnemoiModelInterface
 from anemoi.utils.config import DotDict
