@@ -22,24 +22,25 @@ class DummyEncoderModel(nn.Module):
         super().__init__()
 
         self.encoders = nn.ModuleDict()
-        self.encoders["era"] = nn.Linear(101, 64)
+        self.encoders["era5"] = nn.Linear(101, 64)
         self.encoders["metar"] = nn.Linear(14, 64)
         self.encoders["noaa-atms"] = nn.Linear(32, 64)
 
         self.mixer = nn.Linear(64, 64)
 
-    def forward(self, x: TorchNestedAnemoiTensor) -> OrderedDict:
+    def forward(self, x: OrderedDict) -> OrderedDict:
         y = OrderedDict()
 
-        y = []
-        for encoder_key, xt in zip(self.encoders, x):
-            encoder = self.encoders[encoder_key]
-            yt = encoder(xt.T)
-            y.append(yt)
+        assert set(x.keys()) == set(self.encoders.keys()), f"Keys do not match: {set(x.keys())} != {set(self.encoders.keys())}"
 
-        y = TorchNestedAnemoiTensor(y)
+        for key in self.encoders.keys():
+            encoder, xt = self.encoders[key], x[key]
+            xt = torch.from_numpy(xt)
+            y[key] = encoder(xt.T)
+
         # return y
-        return self.mixer(torch.cat(y.as_list()))
+        y_as_list = [y[key] for key in self.encoders.keys()]
+        return self.mixer(torch.cat(y_as_list))
 
 
 dummy_model = DummyEncoderModel()
@@ -50,7 +51,7 @@ def get_data(i):
     i_s = [i, i + 1, i + 2, i + 3]
     print()
     print(f"-> Using data for {ds.dates[i_s[0]]} to {ds.dates[i_s[-1]]}")
-    return NestedTrainingSample([ds[_] for _ in i_s], name_to_index=ds.name_to_index)
+    return [ds[_] for _ in i_s]
 
 i = 27
 data = get_data(i)
@@ -60,7 +61,6 @@ assert len(data[1]) == 3 # era5 + 2 satellites
 
 x = data[0]
 y_ref = data[1]
-print(x.name_to_index)
 print(x)
 
 # x = OrderedDict()
@@ -71,7 +71,6 @@ print(x)
 
 y = dummy_model(x)
 
-print(f"Model input shapes: {[list(x_in.shape) for x_in in x]}")
-# print(f"Model input shapes: {[obs.upper() + ': ' + str(list(x_in.shape)) for (obs, x_in) in x.items()]}")
+print(f"Model input shapes: {[obs + ': ' + str(list(x_in.shape)) for (obs, x_in) in x.items()]}")
 print(f"Model output shape: {list(y.shape)}")
-assert y.shape == (sum([xt.shape[-1] for xt in x]), 64)
+assert y.shape == (sum([_.shape[-1] for i,_ in x.items()]), 64) 

@@ -81,8 +81,10 @@ dataset:
     #_end: 2023
     #_end: 2005-01-05
     multiple: # automatically pad the datasets with the min and max dates, will be renamed to zip
-      - dataset: aifs-ea-an-oper-0001-mars-o96-1979-2022-6h-v6
-      - dataset: observations-ea-ofb-0001-2004-2023-combined-metar-v1
+      era5: 
+        dataset: aifs-ea-an-oper-0001-mars-o96-1979-2022-6h-v6
+      metar: 
+        dataset: observations-ea-ofb-0001-2004-2023-combined-metar-v1
         frequency: 6h # this may become optional
         window: (-6, 0) # this may become optional
         rename_prefix: metar_ # this may become optional
@@ -106,7 +108,8 @@ dataset:
           - metar_t2m_0
           # - metar_rh2m_0
           # - metar_ps_0
-      - dataset: observations-ea-ofb-0001-2018-2023-noaa-20-atms-radiances-v1
+      noaa-atms:
+        dataset: observations-ea-ofb-0001-2018-2023-noaa-20-atms-radiances-v1
         frequency: 6h # this may become optional
         window: (-6, 0) # this may become optional
         rename_prefix: noaa_20_atms_ # this may become optional
