@@ -17,7 +17,7 @@ from typing import List
 import numpy as np
 import pytorch_lightning as pl
 import torch
-from anemoi.datasets import AnemoiState, TrainingAnemoiSample
+from anemoi.utils.data_structures import NestedTrainingSample
 from anemoi.models.data_indices.collection import IndexCollection
 from anemoi.models.interface import AnemoiModelInterface
 from anemoi.utils.config import DotDict
@@ -261,8 +261,7 @@ class GraphForecaster(pl.LightningModule):
         del batch_idx
 
         # batch is actually not a batch but a single training sample
-        # see the class definition of TrainingAnemoiSample InferenceAnemoiSample and AnemoiStates
-        sample = TrainingAnemoiSample(training_sample)
+        sample = NestedTrainingSample(training_sample)
         # sample.to('gpu')
         # sample.to('cpu')
 

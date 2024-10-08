@@ -47,7 +47,7 @@ limit_batches:
 #          - metar_t2m_0
 #      - dataset: aifs-ea-an-oper-0001-mars-o96-1979-2022-6h-v6
 
-dataset_test_2:
+dataset_test2:
   observations:
     multiple:
       - dataset: observations-ea-ofb-0001-2004-2023-combined-metar-v1
@@ -76,8 +76,9 @@ dataset_test_2:
           # - metar_ps_0
 dataset:
   observations: # for now observations must be on top level, will be removed
-    _start: 2005
-    _end: 2005
+    _start: 2004-06
+    _end: 2004-07
+    #_end: 2023
     #_end: 2005-01-05
     multiple: # automatically pad the datasets with the min and max dates, will be renamed to zip
       - dataset: aifs-ea-an-oper-0001-mars-o96-1979-2022-6h-v6
