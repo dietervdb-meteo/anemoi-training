@@ -239,21 +239,17 @@ class NativeGridDataset(IterableDataset):
             for i in range(start, end, self.timeincrement):
                 x.append(self.data[i])
 
-            x = NestedTrainingSample(x)
+            x = NestedTrainingSample(x, state_type="numpy")
+            # check sizes   
+            for s in x:
+                for k,v in s.arrays.items():
+                    print(k, v.shape)
+                    assert len(v.shape) == 2, v.shape
             print("INPUT", x)
-
-            def _rearrange(arr):
-                assert isinstance(arr, np.ndarray), type(arr)
-                if len(arr.shape) == 3:
-                    return rearrange(arr, "variables ensemble gridpoints -> gridpoints ensemble variables")
-                return rearrange(arr, "variables gridpoints -> gridpoints variables")
-
-            x = NestedTrainingSample(v.map(_rearrange) for v in x)
-            print("Rearranged")
 
             self.ensemble_dim = 1
 
-            x = NestedTrainingSample(x)
+            #x = NestedTrainingSample(x) # TODO: fix this
             x = x.as_tuple_of_tuples()
             yield x
 

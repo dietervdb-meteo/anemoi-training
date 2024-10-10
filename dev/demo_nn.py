@@ -36,7 +36,7 @@ class DummyEncoderModel(nn.Module):
         for key in self.encoders.keys():
             encoder, xt = self.encoders[key], x[key]
             xt = torch.from_numpy(xt)
-            y[key] = encoder(xt.T)
+            y[key] = encoder(xt)
 
         # return y
         y_as_list = [y[key] for key in self.encoders.keys()]
