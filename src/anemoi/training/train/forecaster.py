@@ -260,27 +260,22 @@ class GraphForecaster(pl.LightningModule):
     ) -> tuple[Tensor, Mapping[str, Tensor]]:
         del batch_idx
 
-        # batch is actually not a batch but a single training sample
-        sample = NestedTrainingSample(training_sample)
-        # sample.to('gpu')
-        # sample.to('cpu')
+        # TODO: Should we have a batch as input or a single sample?
+
+        sample = NestedTrainingSample(training_sample, state_type="torch")
+        del training_sample
+        #sample.to('gpu')
+        sample.to('cpu')
 
         print("Entering _step")
-        print(f"❗ Training sample = {sample}:")
-        for i, state in enumerate(sample):
-            print(i, state)
-            print(f"  state {i} as tuple:")
-            for v in state.as_tuple():
-                print("  ", tuple(v.size()))
-            print(f"  state {i} as dict:")
-            for k, v in state.as_dict(self._encoders_keys).items():
-                print(f"    {k}: {tuple(v.size())}")
+        print(f"🆗 Training sample = {sample}:")
         print()
 
         loss = torch.zeros(1, dtype=sample.dtype, device=self.device, requires_grad=False)
         # for validation not normalized in-place because remappers cannot be applied in-place
-        # training_sample = self.model.pre_processors(training_sample, in_place=not validation_mode)
+        sample = self.model.pre_processors(sample, in_place=not validation_mode)
         metrics = {}
+        print(f"🆗 Normalisation done . exit here for now")
         exit()
 
         # start rollout of preprocessed batch

@@ -47,33 +47,33 @@ limit_batches:
 #          - metar_t2m_0
 #      - dataset: aifs-ea-an-oper-0001-mars-o96-1979-2022-6h-v6
 
-dataset_test2:
-  observations:
-    multiple:
-      - dataset: observations-ea-ofb-0001-2004-2023-combined-metar-v1
-        frequency: 6h # this may become optional
-        window: (-6, 0) # this may become optional
-        rename_prefix: metar_ # this may become optional
-        is_observations: true # will disappear
-        select:
-          # forcings
-          - metar_sin_latitude
-          - metar_cos_latitude
-          - metar_sin_longitude
-          - metar_cos_longitude
-          - metar_stalt
-          - metar_lsm
-          - metar_cos_sza
-          - metar_sin_julian_day
-          - metar_cos_julian_day
-          - metar_sin_local_time
-          - metar_cos_local_time
-          # obs data
-          - metar_t2m_0
-          - metar_u10m_0
-          - metar_t2m_0
-          # - metar_rh2m_0
-          # - metar_ps_0
+# dataset_test2:
+#   observations:
+#     multiple:
+#       - dataset: observations-ea-ofb-0001-2004-2023-combined-metar-v1
+#         frequency: 6h # this may become optional
+#         window: (-6, 0) # this may become optional
+#         rename_prefix: metar_ # this may become optional
+#         is_observations: true # will disappear
+#         select:
+#           # forcings
+#           - metar_sin_latitude
+#           - metar_cos_latitude
+#           - metar_sin_longitude
+#           - metar_cos_longitude
+#           - metar_stalt
+#           - metar_lsm
+#           - metar_cos_sza
+#           - metar_sin_julian_day
+#           - metar_cos_julian_day
+#           - metar_sin_local_time
+#           - metar_cos_local_time
+#           # obs data
+#           - metar_t2m_0
+#           - metar_u10m_0
+#           - metar_t2m_0
+#           # - metar_rh2m_0
+#           # - metar_ps_0
 dataset:
   observations: # for now observations must be on top level, will be removed
     _start: 2004-06
@@ -91,23 +91,23 @@ dataset:
         is_observations: true # will disappear
         select:
           # forcings
-          - metar_sin_latitude
-          - metar_cos_latitude
-          - metar_sin_longitude
-          - metar_cos_longitude
-          - metar_stalt
-          - metar_lsm
-          - metar_cos_sza
-          - metar_sin_julian_day
-          - metar_cos_julian_day
-          - metar_sin_local_time
-          - metar_cos_local_time
+          - sin_latitude
+          - cos_latitude
+          - sin_longitude
+          - cos_longitude
+          - stalt
+          - lsm
+          - cos_sza
+          - sin_julian_day
+          - cos_julian_day
+          - sin_local_time
+          - cos_local_time
           # obs data
-          - metar_t2m_0
-          - metar_u10m_0
-          - metar_t2m_0
-          # - metar_rh2m_0
-          # - metar_ps_0
+          - t2m_0
+          - u10m_0
+          - t2m_0
+          # - rh2m_0
+          # - ps_0
       noaa-atms:
         dataset: observations-ea-ofb-0001-2018-2023-noaa-20-atms-radiances-v1
         frequency: 6h # this may become optional
@@ -116,51 +116,42 @@ dataset:
         is_observations: true # will desappear
         select:
           # forcings
-          - noaa_20_atms_sin_latitude
-          - noaa_20_atms_cos_latitude
-          - noaa_20_atms_sin_longitude
-          - noaa_20_atms_cos_longitude
-          - noaa_20_atms_sin_julian_day
-          - noaa_20_atms_cos_julian_day
-          - noaa_20_atms_sin_local_time
-          - noaa_20_atms_cos_local_time
-          - noaa_20_atms_cos_sza
-          - noaa_20_atms_cos_vza
+          - sin_latitude
+          - cos_latitude
+          - sin_longitude
+          - cos_longitude
+          - sin_julian_day
+          - cos_julian_day
+          - sin_local_time
+          - cos_local_time
+          - cos_sza
+          - cos_vza
           # obs data
-          - noaa_20_atms_rawbt_1
-          - noaa_20_atms_rawbt_2
-          - noaa_20_atms_rawbt_3
-          - noaa_20_atms_rawbt_4
-          - noaa_20_atms_rawbt_5
-          - noaa_20_atms_rawbt_6
-          - noaa_20_atms_rawbt_7
-          - noaa_20_atms_rawbt_8
-          - noaa_20_atms_rawbt_9
-          - noaa_20_atms_rawbt_10
-          - noaa_20_atms_rawbt_11
-          - noaa_20_atms_rawbt_12
-          - noaa_20_atms_rawbt_13
-          - noaa_20_atms_rawbt_14
-          - noaa_20_atms_rawbt_15
-          - noaa_20_atms_rawbt_16
-          - noaa_20_atms_rawbt_17
-          - noaa_20_atms_rawbt_18
-          - noaa_20_atms_rawbt_19
-          - noaa_20_atms_rawbt_20
-          - noaa_20_atms_rawbt_21
-          - noaa_20_atms_rawbt_22
-    ##########################################
-    # ADD FUNCTIONALITY TO SPLIT THE TENSORS
-    ##########################################
-    #select_as_dict:
-    #  metar: metar_*
-    #  noaa_20_atms: noaa_20_atms_*
-    #  era5: _OTHERS_
-    # - era5 -- enumerate all fields that are not metar or noaa_20_atms
-
-    # default behavior if we don't specify anything? split per dataset
-    # some shorthand notation to split across each dataset?
-    # may be a dictionary?
+          - rawbt_1
+          - rawbt_2
+          - rawbt_3
+          - rawbt_4
+          - rawbt_5
+          - rawbt_6
+          - rawbt_7
+          - rawbt_8
+          - rawbt_9
+          - rawbt_10
+          - rawbt_11
+          - rawbt_12
+          - rawbt_13
+          - rawbt_14
+          - rawbt_15
+          - rawbt_16
+          - rawbt_17
+          - rawbt_18
+          - rawbt_19
+          - rawbt_20
+          - rawbt_21
+          - rawbt_22
+    ##########################################################
+    # TODO: ADD FUNCTIONALITY TO SPLIT THE TENSORS differently
+    ##########################################################
 
 training: ${dataloader.dataset}
 validation: ${dataloader.dataset}
