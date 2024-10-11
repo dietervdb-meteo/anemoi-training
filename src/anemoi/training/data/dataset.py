@@ -241,16 +241,11 @@ class NativeGridDataset(IterableDataset):
 
             x = NestedTrainingSample(x, state_type="numpy")
             # check sizes   
-            for s in x:
-                for k,v in s.arrays.items():
-                    print(k, v.shape)
-                    assert len(v.shape) == 2, v.shape
             print("INPUT", x)
 
             self.ensemble_dim = 1
 
-            #x = NestedTrainingSample(x) # TODO: fix this
-            x = x.as_tuple_of_tuples()
+            x = x.as_native()
             yield x
 
     def __repr__(self) -> str:
